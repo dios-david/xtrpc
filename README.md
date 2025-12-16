@@ -92,6 +92,7 @@ Create `xtrpc.config.json` in your project root. Only `input.routerFile` is requ
 
 ```json
 {
+  "$schema": "node_modules/@dios-david/xtrpc/dist/xtrpc.schema.json", // Add this to your config file to get autocomplete and validation in your IDE
   "input": {
     "tsconfigPath": "tsconfig.json",
     "routerFile": "src/server/router.ts",
