@@ -1,42 +1,66 @@
-import fs from "fs/promises";
-import { z } from "zod";
+import fs from 'node:fs/promises';
+import { type } from 'arktype';
 
-const Config = z.object({
-  srcProject: z.string().optional().default("."),
-  dstProject: z.string().optional().default("."),
-  outDir: z.string().optional().default("types"),
-  outName: z.string().optional().default("api.d.ts"),
-  overwrite: z.boolean().optional().default(false),
-  explicitOutputs: z.boolean().optional().default(false),
-  include: z.record(z.string().array()).default({}),
-  parserOptions: z
-    .object({ appRouterAlias: z.string().optional().default("AppRouter") })
-    .optional()
-    .default({ appRouterAlias: "AppRouter" }),
+export const Config = type({
+	input: {
+		tsconfigPath: 'string = "tsconfig.json"',
+		routerFile: 'string',
+		routerTypeName: 'string = "AppRouter"',
+	},
+	output: {
+		filePath: 'string = "types/api.d.ts"',
+	},
+	verbose: 'boolean = false',
 });
 
+export type Config = typeof Config.infer;
+
 const readFile = async (path: string) => {
-  try {
-    return await fs.readFile(path, { encoding: "utf8" });
-  } catch {
-    return undefined;
-  }
+	try {
+		return await fs.readFile(path, { encoding: 'utf8' });
+	} catch {
+		return undefined;
+	}
 };
 
-const toJson = (s: string, ctx: z.RefinementCtx) => {
-  try {
-    return JSON.parse(s);
-  } catch {
-    ctx.addIssue({ code: "custom", message: "Invalid JSON" });
-    return z.NEVER;
-  }
-};
+export const readConfig = async (path: string): Promise<Config> => {
+	const fileContent = await readFile(path);
 
-export const readConfig = async (path: string) =>
-  z
-    .string()
-    .optional()
-    .default("{}")
-    .transform(toJson)
-    .pipe(Config)
-    .parse(await readFile(path));
+	// Show helpful message when config file is missing
+	if (!fileContent) {
+		console.log(`No config file found at ${path}`);
+		console.log(
+			`Using default configuration. To customize, create ${path} with your settings.`,
+		);
+		console.log(`See: https://github.com/dios-david/xtrpc#configuration`);
+	}
+
+	let json: Record<string, unknown>;
+	try {
+		json = JSON.parse(fileContent ?? '{}');
+	} catch {
+		console.error(`\nConfiguration error in ${path}:`);
+		console.error('  Invalid JSON format');
+		console.error(
+			`\nSee https://github.com/dios-david/xtrpc#configuration for valid options.\n`,
+		);
+		process.exit(1);
+	}
+
+	const input = json;
+
+	const result = Config(input);
+
+	if (result instanceof type.errors) {
+		console.error(`\nConfiguration error in ${path}:\n`);
+		for (const error of result) {
+			console.error(`  ${error.path.join('.')}: ${error.message}`);
+		}
+		console.error(
+			`\nSee https://github.com/dios-david/xtrpc#configuration for valid options.\n`,
+		);
+		process.exit(1);
+	}
+
+	return result;
+};

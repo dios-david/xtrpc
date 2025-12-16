@@ -1,71 +1,60 @@
 {
-  "name": "@algora/xtrpc",
-  "version": "0.1.1",
-  "description": "Export your tRPC router to massively improve language server performance and/or let your users consume your API from a typed SDK",
-  "author": "Algora PBC. <info@algora.io> (https://algora.io)",
-  "maintainers": [
-    "Zafer Cesur <zafer@algora.io>"
-  ],
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/algora-io/xtrpc.git"
-  },
-  "files": [
-    "dist/**/*",
-    "src/**/*",
-    "LICENSE",
-    "README.md"
-  ],
-  "keywords": [
-    "trpc",
-    "api",
-    "sdk",
-    "typescript"
-  ],
-  "type": "module",
-  "exports": "./dist/index.js",
-  "bin": {
-    "xtrpc": "./dist/index.js"
-  },
-  "scripts": {
-    "typecheck": "tsc",
-    "build": "tsup",
-    "clean": "rm -rf dist .turbo node_modules",
-    "start": "node dist/index.js",
-    "lint": "eslint . --report-unused-disable-directives",
-    "lint:fix": "pnpm lint --fix",
-    "format": "pnpm format:check --write",
-    "format:check": "pnpm prettier --plugin-search-dir=. **/*.{cjs,mjs,ts,tsx,md,json} --ignore-path ./.gitignore --ignore-unknown --no-error-on-unmatched-pattern --check",
-    "release": "changeset version",
-    "pub:beta": "pnpm build && npm publish --tag beta --access public",
-    "pub:next": "pnpm build && npm publish --tag next --access public",
-    "pub:release": "pnpm build && npm publish --access public"
-  },
-  "dependencies": {
-    "ts-morph": "^19.0.0",
-    "zod": "^3.21.4"
-  },
-  "devDependencies": {
-    "@changesets/changelog-github": "^0.4.8",
-    "@changesets/cli": "^2.26.1",
-    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
-    "@total-typescript/ts-reset": "^0.3.7",
-    "@types/eslint": "^8.37.0",
-    "@types/node": "^18.16.0",
-    "@types/prettier": "^2.7.2",
-    "@typescript-eslint/eslint-plugin": "6.0.0",
-    "@typescript-eslint/parser": "6.0.0",
-    "eslint": "^8.40.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-config-turbo": "^0.0.9",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-isaacscript": "^2.6.7",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react": "^7.32.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "^2.8.8",
-    "tsup": "^6.7.0",
-    "typescript": "^5.1.3"
-  }
+	"name": "@dios-david/xtrpc",
+	"description": "Export your tRPC router to massively improve language server performance and/or let your users consume your API from a typed SDK",
+	"version": "0.0.1",
+	"license": "MIT",
+	"author": {
+		"name": "David Dios",
+		"email": "dios.david@thedevcore.net"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/dios-david/xtrpc.git"
+	},
+	"keywords": [
+		"trpc",
+		"api",
+		"sdk",
+		"typescript"
+	],
+	"type": "module",
+	"bin": {
+		"xtrpc": "./dist/cli.mjs"
+	},
+	"exports": {
+		".": {
+			"require": {
+				"types": "./dist/xtrpc.d.cts",
+				"default": "./dist/xtrpc.cjs"
+			},
+			"import": {
+				"types": "./dist/xtrpc.d.mts",
+				"default": "./dist/xtrpc.mjs"
+			}
+		}
+	},
+	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"build": "tsdown src/cli.ts src/xtrpc.ts && pnpm generate:schema",
+		"generate:schema": "tsx scripts/generate-json-schema.ts",
+		"test": "NODE_ENV=test tsx --test test/**/*.spec.ts",
+		"lint": "biome check .",
+		"lint:ci": "biome ci --reporter=github",
+		"lint:fix": "biome check . --write",
+		"release": ""
+	},
+	"dependencies": {
+		"arktype": "2.1.28",
+		"ts-morph": "27.0.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.3.8",
+		"@trpc/server": "11.8.0",
+		"@types/node": "24.10.3",
+		"tsdown": "^0.17.4",
+		"tsx": "4.21.0",
+		"typescript": "5.9.3",
+		"zod": "4.1.13",
+		"zod3": "npm:zod@3.25.76"
+	}
 }

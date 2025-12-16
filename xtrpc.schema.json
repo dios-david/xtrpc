@@ -1,0 +1,37 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"input": {
+			"type": "object",
+			"properties": {
+				"routerFile": {
+					"type": "string"
+				},
+				"routerTypeName": {
+					"type": "string",
+					"default": "AppRouter"
+				},
+				"tsconfigPath": {
+					"type": "string",
+					"default": "tsconfig.json"
+				}
+			},
+			"required": ["routerFile"]
+		},
+		"output": {
+			"type": "object",
+			"properties": {
+				"filePath": {
+					"type": "string",
+					"default": "types/api.d.ts"
+				}
+			}
+		},
+		"verbose": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"required": ["input", "output"]
+}

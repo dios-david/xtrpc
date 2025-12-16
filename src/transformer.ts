@@ -1,74 +1,90 @@
-import { isProcedure } from "./guard";
-import { Node, SourceFile, ts } from "ts-morph";
-import { getFirstSiblingByKindOrThrow, iterateNodes } from "~/ast";
+import { type Node, type SourceFile, ts } from 'ts-morph';
+import { getFirstSiblingByKindOrThrow } from './ast';
+import { isProcedure, type Predicate } from './predicates';
 
-type Transformer = (node: Node) => Array<() => Node<ts.Node> | void>;
+const PROCEDURE_STUB = '() => undefined as any';
+export const CONTEXT_STUB = 'any';
+export const MIDDLEWARE_STUB = 't.middleware(({ ctx, next }) => next({ ctx }))';
+
+type Transformer = (node: Node) => (() => Node<ts.Node>)[];
 
 export const getAllTransformers = (
-  files: SourceFile[],
-  transformations: Array<[(node: Node) => boolean, Transformer]>,
-) =>
-  [...iterateNodes(files)].flatMap(([node]) =>
-    transformations.flatMap(([predicate, transform]) =>
-      predicate(node) ? transform(node) : [],
-    ),
-  );
+	files: SourceFile[],
+	transformers: [Predicate, Transformer][],
+	verbose: boolean = false,
+) => {
+	const results: ReturnType<Transformer> = [];
+
+	let count = 0;
+
+	for (const sourceFile of files) {
+		// PropertyAccessExpression nodes: .context, .use, .query, .mutation, .subscription
+		for (const node of sourceFile.getDescendantsOfKind(
+			ts.SyntaxKind.PropertyAccessExpression,
+		)) {
+			count++;
+			const text = node.getText();
+			if (
+				text.endsWith('.context') ||
+				text.endsWith('.use') ||
+				text.endsWith('.query') ||
+				text.endsWith('.mutation') ||
+				text.endsWith('.subscription')
+			) {
+				for (const [predicate, transform] of transformers) {
+					if (predicate(node)) {
+						results.push(...transform(node));
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	if (verbose) {
+		console.log(
+			`Visited ${count} nodes with ${transformers.length} transformers`,
+		);
+	}
+
+	return results;
+};
 
 export const redefine =
-  (text: string): Transformer =>
-  (node: Node) => {
-    const sibling = getFirstSiblingByKindOrThrow(
-      node,
-      ts.SyntaxKind.SyntaxList,
-    );
-    return [() => sibling.replaceWithText(text)];
-  };
+	(text: string): Transformer =>
+	(node: Node) => {
+		const sibling = getFirstSiblingByKindOrThrow(
+			node,
+			ts.SyntaxKind.SyntaxList,
+		);
+		return [() => sibling.replaceWithText(text)];
+	};
 
-export const pruneRouter =
-  (include: Record<string, string[]>, explicitOutputs: boolean): Transformer =>
-  (node: Node) => {
-    const includeAll = Object.keys(include).length === 0;
+export const pruneProcedureImplementations: Transformer = (node) => {
+	const expr = node
+		.getParentOrThrow()
+		.getFirstDescendantByKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
 
-    const expr = node
-      .getParentOrThrow()
-      .getFirstDescendantByKindOrThrow(ts.SyntaxKind.ObjectLiteralExpression);
+	return expr
+		.getChildrenOfKind(ts.SyntaxKind.PropertyAssignment)
+		.flatMap((node) => {
+			const [k, _, v] = node.getChildren();
+			if (!k || !v) {
+				throw new Error('Unexpected router');
+			}
 
-    return expr
-      .getChildrenOfKind(ts.SyntaxKind.PropertyAssignment)
-      .flatMap((route) => {
-        const [k, _, v] = route.getChildren();
-        if (!k || !v) {
-          throw new Error("Unexpected router");
-        }
+			if (v.getKind() === ts.SyntaxKind.CallExpression) {
+				return node
+					.getDescendantsOfKind(ts.SyntaxKind.PropertyAccessExpression)
+					.flatMap((n) => {
+						if (isProcedure(n)) {
+							return redefine(PROCEDURE_STUB)(n);
+						}
 
-        if (v.getKind() === ts.SyntaxKind.CallExpression) {
-          const subrouter = route
-            .getFirstAncestorByKindOrThrow(ts.SyntaxKind.VariableDeclaration)
-            ?.getFirstChildByKindOrThrow(ts.SyntaxKind.Identifier);
+						return [];
+					});
+			}
 
-          const match = Object.entries(include).find(
-            ([r, procs]) =>
-              r === subrouter.getText() && procs.includes(k.getText()),
-          );
-          if (!match && !includeAll) {
-            return [() => route.remove()];
-          }
-
-          return explicitOutputs
-            ? route
-                .getDescendants()
-                .flatMap((n) =>
-                  isProcedure(n)
-                    ? [() => redefine("() => undefined as any")(n)]
-                    : [],
-                )
-            : [];
-        }
-
-        if (v.getKind() === ts.SyntaxKind.Identifier) {
-          const match = Object.keys(include).find((r) => r === v.getText());
-          return match || includeAll ? [] : [() => route.remove()];
-        }
-        return [];
-      });
-  };
+			return [];
+		});
+};
