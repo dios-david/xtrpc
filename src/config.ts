@@ -4,8 +4,9 @@ import { type } from 'arktype';
 export const Config = type({
 	input: {
 		tsconfigPath: 'string = "tsconfig.json"',
-		routerFile: 'string',
-		routerTypeName: 'string = "AppRouter"',
+		appRouterFilePath: 'string',
+		appRouterTypeName: 'string = "AppRouter"',
+		'routerPaths?': 'string[]',
 	},
 	output: {
 		filePath: 'string = "types/api.d.ts"',
