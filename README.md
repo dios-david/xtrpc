@@ -130,14 +130,14 @@ export type AppRouter = typeof appRouter;
 
 ### Available options
 
-| Option                    | Type     | Default            | Description                                                                                                                                |
-| ------------------------- | -------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `input.tsconfigPath`      | string   | `"tsconfig.json"`  | Where to find your TypeScript config                                                                                                       |
-| `input.appRouterFilePath` | string   | **(required)**     | The file that contains your app router                                                                                                     |
-| `input.appRouterTypeName` | string   | `"AppRouter"`      | The name of your exported app router type                                                                                                  |
-| `input.routerPaths`       | string[] | -                  | Optional paths to search for routers and procedures (only files under these paths will be included, specifying this can make xtrpc faster) |
-| `output.filePath`         | string   | `"types/api.d.ts"` | Where to save the generated types                                                                                                          |
-| `verbose`                 | boolean  | `false`            | Show detailed output whilst running                                                                                                        |
+| Option                    | Type     | Default            | Description                                                                                                                                        |
+| ------------------------- | -------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input.tsconfigPath`      | string   | `"tsconfig.json"`  | Where to find your TypeScript config                                                                                                               |
+| `input.appRouterFilePath` | string   | **(required)**     | The file that contains your app router                                                                                                             |
+| `input.appRouterTypeName` | string   | `"AppRouter"`      | The name of your exported app router type                                                                                                          |
+| `input.routerPaths`       | string[] | -                  | Optional glob patterns to search for routers and procedures - only files under these paths will be included, specifying this can make xtrpc faster |
+| `output.filePath`         | string   | `"types/api.d.ts"` | Where to save the generated types                                                                                                                  |
+| `verbose`                 | boolean  | `false`            | Show detailed output whilst running                                                                                                                |
 
 ## When to use this
 
