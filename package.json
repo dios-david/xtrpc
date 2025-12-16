@@ -1,7 +1,7 @@
 {
 	"name": "@daviddios/xtrpc",
 	"description": "Export your tRPC router to massively improve language server performance and/or let your users consume your API from a typed SDK",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"license": "MIT",
 	"author": {
 		"name": "David Dios",
