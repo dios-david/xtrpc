@@ -1,5 +1,5 @@
 {
-	"name": "@dios-david/xtrpc",
+	"name": "@daviddios/xtrpc",
 	"description": "Export your tRPC router to massively improve language server performance and/or let your users consume your API from a typed SDK",
 	"version": "0.0.1",
 	"license": "MIT",
@@ -9,7 +9,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/dios-david/xtrpc.git"
+		"url": "git+https://github.com/dios-david/xtrpc.git"
 	},
 	"keywords": [
 		"trpc",
@@ -19,7 +19,7 @@
 	],
 	"type": "module",
 	"bin": {
-		"xtrpc": "./dist/cli.mjs"
+		"xtrpc": "dist/cli.mjs"
 	},
 	"exports": {
 		".": {

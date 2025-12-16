@@ -45,7 +45,7 @@ The result? A tiny, fast type file that keeps your implementation details privat
 ## Installation
 
 ```bash
-npm i -D @dios-david/xtrpc
+npm i -D @daviddios/xtrpc
 ```
 
 ## Quick start
@@ -92,7 +92,7 @@ Create `xtrpc.config.json` in your project root. Only `input.routerFile` is requ
 
 ```json
 {
-  "$schema": "node_modules/@dios-david/xtrpc/dist/xtrpc.schema.json", // Add this to your config file to get autocomplete and validation in your IDE
+  "$schema": "node_modules/@daviddios/xtrpc/dist/xtrpc.schema.json", // Add this to your config file to get autocomplete and validation in your IDE
   "input": {
     "tsconfigPath": "tsconfig.json",
     "routerFile": "src/server/router.ts",
