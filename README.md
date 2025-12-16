@@ -57,7 +57,7 @@ Create `xtrpc.config.json` in your project root:
 ```json
 {
   "input": {
-    "routerFile": "src/server/router.ts"
+    "appRouterFilePath": "src/server/router.ts"
   }
 }
 ```
@@ -88,15 +88,18 @@ That's it! Your client now has full type safety without any of the baggage.
 
 ## Configuration
 
-Create `xtrpc.config.json` in your project root. Only `input.routerFile` is required - everything else has sensible defaults.
+Create `xtrpc.config.json` in your project root. Only `input.appRouterFilePath` is required - everything else has sensible defaults.
+
+### Example config file
 
 ```json
 {
   "$schema": "node_modules/@daviddios/xtrpc/dist/xtrpc.schema.json", // Add this to your config file to get autocomplete and validation in your IDE
   "input": {
     "tsconfigPath": "tsconfig.json",
-    "routerFile": "src/server/router.ts",
-    "routerTypeName": "AppRouter"
+    "appRouterFilePath": "src/server/router.ts",
+    "appRouterTypeName": "AppRouter",
+    "routerPaths": ["src/server/**/*.ts", "!src/server/**/*.test.ts"]
   },
   "output": {
     "filePath": "types/api.d.ts"
@@ -105,13 +108,36 @@ Create `xtrpc.config.json` in your project root. Only `input.routerFile` is requ
 }
 ```
 
-| Option                 | Type    | Default            | Description                           |
-| ---------------------- | ------- | ------------------ | ------------------------------------- |
-| `input.tsconfigPath`   | string  | `"tsconfig.json"`  | Where to find your TypeScript config  |
-| `input.routerFile`     | string  | **(required)**     | The file that contains your router    |
-| `input.routerTypeName` | string  | `"AppRouter"`      | The name of your exported router type |
-| `output.filePath`      | string  | `"types/api.d.ts"` | Where to save the generated types     |
-| `verbose`              | boolean | `false`            | Show detailed output whilst running   |
+### Example app router
+
+```ts
+// This file contains your app router, the path of this file
+// should be set in the configuration as `input.appRouterFilePath`
+import { initTRPC } from '@trpc/server';
+
+const t = initTRPC.create();
+
+export const appRouter = t.router({
+	getUsers: t.procedure
+		.output(...)
+		.query(...)
+});
+
+// This is the exported type of your app router, the name of this
+// should be set in the configuration as `input.appRouterTypeName`
+export type AppRouter = typeof appRouter;
+```
+
+### Available options
+
+| Option                    | Type     | Default            | Description                                                                                                                                        |
+| ------------------------- | -------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input.tsconfigPath`      | string   | `"tsconfig.json"`  | Where to find your TypeScript config                                                                                                               |
+| `input.appRouterFilePath` | string   | **(required)**     | The file that contains your app router                                                                                                             |
+| `input.appRouterTypeName` | string   | `"AppRouter"`      | The name of your exported app router type                                                                                                          |
+| `input.routerPaths`       | string[] | -                  | Optional glob patterns to search for routers and procedures - only files under these paths will be included, specifying this can make xtrpc faster |
+| `output.filePath`         | string   | `"types/api.d.ts"` | Where to save the generated types                                                                                                                  |
+| `verbose`                 | boolean  | `false`            | Show detailed output whilst running                                                                                                                |
 
 ## When to use this
 

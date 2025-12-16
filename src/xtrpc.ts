@@ -25,10 +25,15 @@ export const xtrpc = (config: Config) => {
 	};
 
 	return timed('Total xtrpc execution', () => {
+		if (config.verbose) {
+			console.log('xtrpc configuration:', JSON.stringify(config, null, 2));
+		}
+
 		const project = timed(
 			'Load TypeScript project',
 			() =>
 				new Project({
+					skipAddingFilesFromTsConfig: !!config.input.routerPaths?.length,
 					tsConfigFilePath: config.input.tsconfigPath,
 					compilerOptions: {
 						outDir: 'dist',
@@ -39,8 +44,16 @@ export const xtrpc = (config: Config) => {
 		);
 
 		const sourceFiles = timed('Load source files', () => {
+			if (config.input.routerPaths) {
+				return project.addSourceFilesAtPaths(config.input.routerPaths);
+			}
+
 			return project.getSourceFiles();
 		});
+
+		if (config.verbose) {
+			console.log('Source files to process:', sourceFiles.length);
+		}
 
 		const transformers = timed('Collect transformers', () => {
 			return getAllTransformers(
@@ -61,24 +74,24 @@ export const xtrpc = (config: Config) => {
 		});
 
 		const [appRouter, rootFile] = timed('Find router', () => {
-			const routerPath = join(process.cwd(), config.input.routerFile);
+			const routerPath = join(process.cwd(), config.input.appRouterFilePath);
 			const routerFile = sourceFiles.find(
 				(file) => file.getFilePath() === routerPath,
 			);
 
 			if (!routerFile) {
 				throw new Error(
-					`Router is not found in file: ${config.input.routerFile}`,
+					`Router is not found in file: ${config.input.appRouterFilePath}`,
 				);
 			}
 
 			return findNodeOrThrow(
 				routerFile,
-				isAppRouterName(config.input.routerTypeName),
+				isAppRouterName(config.input.appRouterTypeName),
 			);
 		});
 
-		appRouter.replaceWithText(config.input.routerTypeName);
+		appRouter.replaceWithText(config.input.appRouterTypeName);
 
 		const [outputFile] = timed('Generate declaration file', () => {
 			return project
